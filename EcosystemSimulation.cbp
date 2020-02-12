@@ -45,6 +45,8 @@
 		<Unit filename="models/cellModel.cpp" />
 		<Unit filename="models/cellModel.h" />
 		<Unit filename="models/constants.h" />
+		<Unit filename="models/infoThreadModel.cpp" />
+		<Unit filename="models/infoThreadModel.h" />
 		<Unit filename="models/worldModel.cpp" />
 		<Unit filename="models/worldModel.h" />
 		<Unit filename="views/worldView.cpp" />

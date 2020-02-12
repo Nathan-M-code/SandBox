@@ -7,14 +7,13 @@
 
 #include "constants.h"
 
-enum Type {nothing, plant, cloud, water, fire, lead};
+enum Type {plant=0, cloud, water, fire, lead, nothing};
 
 class CellModel{
 private:
     Type _type;
     unsigned int _row;
     unsigned int _col;
-    SDL_Rect *_rect;
 public:
     CellModel(Type type, int row, int col);
     ~CellModel();
@@ -24,7 +23,6 @@ public:
     inline void setRow(unsigned int newRow) {_row = newRow;};
     inline void setCol(unsigned int newCol) {_col = newCol;};
     void setCoo(unsigned int newRow, unsigned int newCol);
-    inline SDL_Rect* getRect() {return _rect;};
 };
 
 #endif

@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1581169662 source:c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\main.cpp
+1581535071 source:c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\main.cpp
 	<SDL.h>
 	<iostream>
 	<vector>
@@ -373,10 +373,10 @@
 	<vector>
 	"../models/plantModel.h"
 
-1581168848 source:c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\cellmodel.cpp
+1581440194 source:c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\cellmodel.cpp
 	"cellModel.h"
 
-1581108729 c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\cellmodel.h
+1581440185 c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\cellmodel.h
 	<SDL.h>
 	<iostream>
 	<vector>
@@ -391,12 +391,16 @@
 	"../models/cellModel.h"
 	"../models/constants.h"
 
-1581169448 c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\worldmodel.h
+1581529000 c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\worldmodel.h
 	<SDL.h>
 	<iostream>
 	<vector>
 	<cstdlib>
 	<random>
+	<thread>
+	<mutex>
+	<cmath>
+	"infoThreadModel.h"
 	"cellModel.h"
 	"constants.h"
 
@@ -407,13 +411,13 @@
 	"../models/worldModel.h"
 	"../models/constants.h"
 
-1581170203 source:c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\views\worldview.cpp
+1581535051 source:c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\views\worldview.cpp
 	"worldView.h"
 
-1581170315 source:c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\worldmodel.cpp
+1581535107 source:c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\worldmodel.cpp
 	"worldModel.h"
 
-1581164568 c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\constants.h
+1581535117 c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\constants.h
 
 1581164754 source:c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\controlers\worldcontroler.cpp
 	"worldControler.h"
@@ -422,4 +426,12 @@
 	<SDL.h>
 	<iostream>
 	"../models/worldModel.h"
+
+1581447590 c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\infothreadmodel.h
+	<SDL.h>
+	<iostream>
+	"cellModel.h"
+
+1581447583 source:c:\users\natha\desktop\dev\dev c++\ecosystemsimulation\models\infothreadmodel.cpp
+	"infoThreadModel.h"
 

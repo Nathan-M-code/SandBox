@@ -10,6 +10,7 @@ WorldModel::WorldModel(){
     _tool = 0;
     _xray = false;
     //cout << _nbCellHeight << " " << _nbCellWidth << endl;
+    _nbThread = 16; //ATTENTION NE PAS CHANGER
 }
 WorldModel::~WorldModel(){
     for(int row=0;row<_nbCellHeight;row++){
@@ -42,190 +43,26 @@ void WorldModel::init(){
         }
         cout << endl;
     }*/
+
+    for(int i=0;i<NB_DIFFERENT_CELL_TYPE;i++){
+        _listTabRect.push_back({});
+        _listCellColor.push_back({});
+    }
+
+    //plant
+    _listCellColor[0].push_back(0);_listCellColor[0].push_back(255);_listCellColor[0].push_back(0);
+    //cloud
+    _listCellColor[1].push_back(150);_listCellColor[1].push_back(150);_listCellColor[1].push_back(255);
+    //water
+    _listCellColor[2].push_back(0);_listCellColor[2].push_back(0);_listCellColor[2].push_back(255);
+    //fire
+    _listCellColor[3].push_back(0);_listCellColor[3].push_back(0);_listCellColor[3].push_back(0);
+    //lead
+    _listCellColor[4].push_back(100);_listCellColor[4].push_back(100);_listCellColor[4].push_back(100);
 }
 
 void WorldModel::changeView(){
     _xray = !_xray;
-}
-
-void WorldModel::generateRectByLine(Type type, int row, std::vector<SDL_Rect*> &listRect, std::vector< std::vector<CellModel*> > &listCellModel){
-    int col = 0;
-    unsigned int minCol;
-    unsigned int maxCol;
-    while(col < _nbCellWidth){
-        if(listCellModel[row][col] != 0 && listCellModel[row][col]->getType() == type){
-            minCol = col;
-            maxCol = col;
-            col++;
-            while(col < listCellModel[row].size() && listCellModel[row][col] != 0 && listCellModel[row][col]->getType() == type){
-                maxCol = col;
-                col++;
-            }
-            SDL_Rect *rect = new SDL_Rect;
-            rect->x = minCol * CELL_WIDTH;
-            rect->y = row * CELL_HEIGHT;
-            rect->h = CELL_HEIGHT;
-            rect->w = CELL_WIDTH*((maxCol-minCol)+1);
-            listRect.push_back(rect);
-            continue;
-        }
-        col++;
-    }
-}
-
-void WorldModel::updateTabAllType(){
-    for(int i=0;i<_tabPlantVec.size();i++){
-        delete _tabPlantVec[i];
-    }
-    _tabPlantVec.clear();
-    for(int i=0;i<_tabCloudVec.size();i++){
-        delete _tabCloudVec[i];
-    }
-    _tabCloudVec.clear();
-    for(int i=0;i<_tabWaterVec.size();i++){
-        delete _tabWaterVec[i];
-    }
-    _tabWaterVec.clear();
-    for(int i=0;i<_tabFireVec.size();i++){
-        delete _tabFireVec[i];
-    }
-    _tabFireVec.clear();
-    for(int i=0;i<_tabLeadVec.size();i++){
-        delete _tabLeadVec[i];
-    }
-    _tabLeadVec.clear();
-
-
-    for(int row=0;row<_nbCellHeight;row++){
-        this->generateRectByLine(plant, row, _tabPlantVec, _listCellModel);
-        this->generateRectByLine(cloud, row, _tabCloudVec, _listCellModel);
-        this->generateRectByLine(water, row, _tabWaterVec, _listCellModel);
-        this->generateRectByLine(fire, row, _tabFireVec, _listCellModel);
-        this->generateRectByLine(lead, row, _tabLeadVec, _listCellModel);
-    }
-    /*for(int i=0;i<_tabPlantVec.size();i++){
-        cout << "i: " << i <<  "x: "<< _tabPlantVec[i]->x << " y: " << _tabPlantVec[i]->y << " w: " << _tabPlantVec[i]->w << " h: " << _tabPlantVec[i]->h << endl;
-    }*/
-}
-
-void WorldModel::updateTabRectByType(Type type){
-    vector< vector<CellModel*> > listCellModelCopy(_listCellModel);
-
-    if(type == plant){
-        _tabPlantVec.clear();
-    }else if(type == cloud){
-        _tabCloudVec.clear();
-    }else if(type == water){
-        _tabWaterVec.clear();
-    }else if(type == fire){
-        _tabFireVec.clear();
-        for(int row=0;row<listCellModelCopy.size();row++){
-            for(int col=0;col<listCellModelCopy[row].size();col++){
-                if(listCellModelCopy[row][col] != 0 && listCellModelCopy[row][col]->getType() == fire){
-                    _tabFireVec.push_back(listCellModelCopy[row][col]->getRect());
-                }
-            }
-        }
-        return;
-    }else if(type == lead){
-        _tabLeadVec.clear();
-    }
-
-    int minRow = 0;
-    int maxRow = 0;
-    int minCol = 0;
-    int maxCol = 0;
-
-    while(!isEmptyCellType(listCellModelCopy, type)){
-        int resultArea = findBiggestRect(listCellModelCopy, type, minRow, maxRow, minCol, maxCol);
-
-        SDL_Rect *rect = new SDL_Rect;
-        rect->x = minCol * CELL_WIDTH;
-        rect->y = minRow * CELL_HEIGHT;
-        rect->h = CELL_HEIGHT*((maxRow-minRow)+1);
-        rect->w = CELL_WIDTH*((maxCol-minCol)+1);
-
-        if(type == plant)
-            _tabPlantVec.push_back(rect);
-        else if(type == cloud)
-            _tabCloudVec.push_back(rect);
-        else if(type == water)
-            _tabWaterVec.push_back(rect);
-        else if(type == fire)
-            _tabFireVec.push_back(rect);
-        else if(type == lead)
-            _tabLeadVec.push_back(rect);
-
-        for(int row=minRow;row<=maxRow;row++){
-            for(int col=minCol;col<=maxCol;col++){
-                listCellModelCopy[row][col] = 0;
-            }
-        }
-    }
-}
-
-int WorldModel::findBiggestRect(std::vector< std::vector<CellModel*> > &a, Type type, int &minRow, int &maxRow, int &minCol, int &maxCol){
-    int w[a.size()][a[0].size()];
-    for(int row=0;row<a.size();row++){
-        for(int col=0;col<a[0].size();col++){
-            w[row][col] = 0;
-        }
-    }
-
-    int h[a.size()][a[0].size()];
-    for(int row=0;row<a.size();row++){
-        for(int col=0;col<a[0].size();col++){
-            h[row][col] = 0;
-        }
-    }
-
-    int resultMax = 0;
-    int result = 0;
-    int minw;
-
-    for(int row=0;row<a.size();row++){
-        for(int col=0;col<a[row].size();col++){
-            if(a[row][col] == 0 || a[row][col]->getType() != type){
-                continue;
-            }
-            if(row == 0){
-                h[row][col] = 1;
-            }else{
-                h[row][col] = h[row-1][col]+1;
-            }
-            if(col == 0){
-                w[row][col] = 1;
-            }else{
-                w[row][col] = w[row][col-1]+1;
-            }
-            minw = w[row][col];
-            //cout << "minw: " << minw << endl;
-            for(int dh=0;dh<h[row][col];dh++){
-                //cout << "dh: " << dh << endl;
-                minw = min(minw, w[row-dh][col]);
-                result = (dh+1)*minw;
-                if(result > resultMax){
-                    resultMax = result;
-                    minRow = row-dh;
-                    minCol = col-minw+1;
-                    maxRow = row;
-                    maxCol = col;
-                }
-            }
-        }
-    }
-
-    return resultMax;
-}
-
-bool WorldModel::isEmptyCellType(std::vector< std::vector<CellModel*> > &listCellModel, Type type){
-    for(int row=0;row<listCellModel.size();row++){
-        for(int col=0;col<listCellModel[row].size();col++){
-            if(listCellModel[row][col] != 0 && listCellModel[row][col]->getType() == type)
-                return false;
-        }
-    }
-    return true;
 }
 
 void WorldModel::setTool(int tool){
@@ -258,19 +95,6 @@ void WorldModel::setTool(int tool){
 void WorldModel::deleteCell(unsigned int row, unsigned int col){
     if(row>=0 && row<_listCellModel.size() && col>=0 && col<_listCellModel[row].size()){
         if(_listCellModel[row][col] != 0){
-            /*Type type = _listCellModel[row][col]->getType();
-            SDL_Rect *rect = _listCellModel[row][col]->getRect();
-            if(type == plant){
-                deleteToList(rect, _tabPlantVec);
-            }else if(type == cloud){
-                deleteToList(rect, _tabCloudVec);
-            }else if(type == water){
-                deleteToList(rect, _tabWaterVec);
-            }else if(type == fire){
-                deleteToList(rect, _tabFireVec);
-            }else if(type == lead){
-                deleteToList(rect, _tabLeadVec);
-            }*/
             delete _listCellModel[row][col];
             _listCellModel[row][col] = 0;
         }
@@ -342,53 +166,33 @@ void WorldModel::moveAndReplaceCellAt(unsigned int originRow, unsigned int origi
         }
 }
 
-bool WorldModel::contains(SDL_Rect *rect, std::vector<SDL_Rect*> &listRect){
-    for(int i=0;i<listRect.size();i++){
-        if(listRect[i] == rect){
-            return true;
-        }
-    }
-    return false;
-}
+void WorldModel::updateAllRect(){
+    //clear the list of rect
+    clearAllTabRect();
 
-void WorldModel::addRectToList(CellModel* cellmodel){
-    Type type = cellmodel->getType();
-    SDL_Rect *rect = cellmodel->getRect();
-    //cout << "rect qui va etre ajouter: " << rect->x << " " << rect->y << " " << rect->h << " " << rect->w << endl;
+    vector<InfoThreadModel *> listPointer;
 
-    if(type == plant){
-        if(!contains(rect, _tabPlantVec)){
-            _tabPlantVec.push_back(rect);
-        }
-    }else if(type == cloud){
-        if(!contains(rect, _tabCloudVec)){
-            _tabCloudVec.push_back(rect);
-        }
-    }else if(type == water){
-        if(!contains(rect, _tabWaterVec)){
-            _tabWaterVec.push_back(rect);
-        }
-    }else if(type == fire){
-        if(!contains(rect, _tabFireVec)){
-            _tabFireVec.push_back(rect);
-        }
-    }else if(type == lead){
-        if(!contains(rect, _tabLeadVec)){
-            _tabLeadVec.push_back(rect);
-        }
+    //claculate
+    _listThread.clear();
+    for(int numThread=0;numThread<_nbThread;numThread++){
+        //cout << numThread << "minRow: " << (numThread/4)*(_nbCellHeight/4) << "maxRow: " << ((numThread/4)+1)*(_nbCellHeight/4) << "minCol: " << (numThread%4)*(_nbCellWidth/4) << "maxCol: " << ((numThread%4)+1)*(_nbCellWidth/4) << endl;
+        InfoThreadModel *i = new InfoThreadModel(numThread, _listCellModel, _listTabRect, (numThread/(int)sqrt(_nbThread))*(_nbCellHeight/(int)sqrt(_nbThread)), ((numThread/(int)sqrt(_nbThread))+1)*(_nbCellHeight/(int)sqrt(_nbThread)), (numThread%(int)sqrt(_nbThread))*(_nbCellWidth/(int)sqrt(_nbThread)), ((numThread%(int)sqrt(_nbThread))+1)*(_nbCellWidth/(int)sqrt(_nbThread)));
+        //cout << "adresse de tabRect dans lma creation des threads: " << &_listTabRect << endl;
+        //InfoThreadModel *i = new InfoThreadModel(numThread, _listCellModel, _listTabRect, 0, 32, 0, 32);
+        listPointer.push_back(i);
+        _listThread.push_back(thread(threadCalculateRect, i));
     }
 
-    /*cout << "list :" << endl;
-    for(int i=0;i<_tabPlantVec.size();i++){
-        cout << "i: " << i << "ptr: " << _tabPlantVec[i] <<  " x: "<< _tabPlantVec[i]->x << " y: " << _tabPlantVec[i]->y << " w: " << _tabPlantVec[i]->w << " h: " << _tabPlantVec[i]->h << endl;
-    }*/
-}
+    //synchronization
+    for(int i=0;i<_listThread.size();i++){
+        _listThread[i].join();
+    }
 
-void WorldModel::deleteToList(SDL_Rect *rect, std::vector<SDL_Rect*> &listRect){
-    for(int i=0;i<listRect.size();i++){
-        if(listRect[i] == rect){
-            listRect.erase(listRect.begin()+i);
-        }
+    //cout << "fin de tous les threads" << endl;
+
+    for(int i=0;i<listPointer.size();i++){
+        delete listPointer[i];
+        listPointer[i] = 0;
     }
 }
 
@@ -456,8 +260,13 @@ void WorldModel::update(){
             }
         }
     }
+    updateAllRect();
+}
 
-    updateTabAllType();
+void WorldModel::clearAllTabRect(){
+    for(int i=0;i<_listTabRect.size();i++){
+        _listTabRect[i].clear();
+    }
 }
 
 void WorldModel::growPlantAtCell(unsigned int row, unsigned int col){
@@ -477,4 +286,126 @@ void WorldModel::growPlantAtCell(unsigned int row, unsigned int col){
             }
         }
     }
+}
+
+//-----------------------------------------------------------------------------------------------------------
+
+std::mutex mtx;
+
+void threadCalculateRect(InfoThreadModel *infoThreadModel){
+    //cout << infoThreadModel->_num << " " << infoThreadModel->_minCol << endl;
+    vector< vector<CellModel*> > listCellModelCopy;
+
+
+    vector< vector<CellModel*> > listCell = *(infoThreadModel->getListCell());
+    vector< vector<SDL_Rect> > *tabRect = infoThreadModel->getTabRect();
+    //cout << "adresse de tabRect dans le calcule des threads: " << tabRect << endl;
+
+//    for(int i=0;i<listCell.size();i++){
+//        for(int y=0;y<listCell[i].size();y++){
+//            cout << listCell[i][y] << " " ;
+//        }
+//        cout << endl;
+//    }
+
+    for(int row=infoThreadModel->_minRow;row<infoThreadModel->_maxRow;row++){
+        listCellModelCopy.push_back({});
+        for(int col=infoThreadModel->_minCol;col<infoThreadModel->_maxCol;col++){
+            listCellModelCopy[row-infoThreadModel->_minRow].push_back(listCell[row][col]);
+        }
+    }
+
+    for(int ty=0;ty<NB_DIFFERENT_CELL_TYPE;ty++){
+
+        Type type = static_cast<Type>(ty);
+
+        int minRow = 0;
+        int maxRow = 0;
+        int minCol = 0;
+        int maxCol = 0;
+
+        while(!isEmptyCellType(listCellModelCopy, type)){
+            int resultArea = findBiggestRect(listCellModelCopy, type, minRow, maxRow, minCol, maxCol);
+
+            SDL_Rect rect;
+            rect.x = (minCol+infoThreadModel->_minCol) * CELL_WIDTH;
+            rect.y = (minRow+infoThreadModel->_minRow) * CELL_HEIGHT;
+            rect.h = CELL_HEIGHT*((maxRow-minRow)+1);
+            rect.w = CELL_WIDTH*((maxCol-minCol)+1);
+
+            mtx.lock();
+            tabRect->at(ty).push_back(rect);
+            mtx.unlock();
+
+            for(int row=minRow;row<=maxRow;row++){
+                for(int col=minCol;col<=maxCol;col++){
+                    listCellModelCopy[row][col] = 0;
+                }
+            }
+        }
+    }
+}
+
+int findBiggestRect(std::vector< std::vector<CellModel*> > &a, Type type, int &minRow, int &maxRow, int &minCol, int &maxCol){
+    int w[a.size()][a[0].size()];
+    for(int row=0;row<a.size();row++){
+        for(int col=0;col<a[0].size();col++){
+            w[row][col] = 0;
+        }
+    }
+
+    int h[a.size()][a[0].size()];
+    for(int row=0;row<a.size();row++){
+        for(int col=0;col<a[0].size();col++){
+            h[row][col] = 0;
+        }
+    }
+
+    int resultMax = 0;
+    int result = 0;
+    int minw;
+
+    for(int row=0;row<a.size();row++){
+        for(int col=0;col<a[row].size();col++){
+            if(a[row][col] == 0 || a[row][col]->getType() != type){
+                continue;
+            }
+            if(row == 0){
+                h[row][col] = 1;
+            }else{
+                h[row][col] = h[row-1][col]+1;
+            }
+            if(col == 0){
+                w[row][col] = 1;
+            }else{
+                w[row][col] = w[row][col-1]+1;
+            }
+            minw = w[row][col];
+            //cout << "minw: " << minw << endl;
+            for(int dh=0;dh<h[row][col];dh++){
+                //cout << "dh: " << dh << endl;
+                minw = min(minw, w[row-dh][col]);
+                result = (dh+1)*minw;
+                if(result > resultMax){
+                    resultMax = result;
+                    minRow = row-dh;
+                    minCol = col-minw+1;
+                    maxRow = row;
+                    maxCol = col;
+                }
+            }
+        }
+    }
+    return resultMax;
+}
+
+bool isEmptyCellType(std::vector< std::vector<CellModel*> > &listCellModel, Type type){
+    //return true if the listCellModel dosn't contains the type
+    for(int row=0;row<listCellModel.size();row++){
+        for(int col=0;col<listCellModel[row].size();col++){
+            if(listCellModel[row][col] != 0 && listCellModel[row][col]->getType() == type)
+                return false;
+        }
+    }
+    return true;
 }

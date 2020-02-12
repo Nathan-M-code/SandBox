@@ -58,6 +58,9 @@ int main(int argc, char* args[]) {
                 if(event.key.keysym.sym == SDLK_t){
                     worldModel.changeView();
                 }
+                if(event.key.keysym.sym == SDLK_RIGHT){
+                    worldModel.update();
+                }
             }
         }
 //        Uint32 timeA = SDL_GetTicks();

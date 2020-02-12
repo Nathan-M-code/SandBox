@@ -6,7 +6,11 @@
 #include <vector>
 #include <cstdlib>
 #include <random>
+#include <thread>
+#include <mutex>
+#include <cmath>
 
+#include "infoThreadModel.h"
 #include "cellModel.h"
 #include "constants.h"
 
@@ -28,13 +32,14 @@ private:
 
     std::vector< std::vector<CellModel*> > _listCellModel;
 
-    std::vector<SDL_Rect*> _tabPlantVec;
-    std::vector<SDL_Rect*> _tabCloudVec;
-    std::vector<SDL_Rect*> _tabWaterVec;
-    std::vector<SDL_Rect*> _tabFireVec;
-    std::vector<SDL_Rect*> _tabLeadVec;
+    std::vector<  std::vector<SDL_Rect> > _listTabRect;
+
+    std::vector< std::vector<int8_t> > _listCellColor;
 
     bool _xray;
+
+    int _nbThread;
+    std::vector<std::thread> _listThread;
 
 public:
     WorldModel();
@@ -48,17 +53,11 @@ public:
     inline int getNbCellWidth(){return _nbCellWidth;};
     inline unsigned int getTool(){return _tool;};
     void setTool(int tool);
-    inline std::vector<SDL_Rect*>& getTabRectPlant(){return _tabPlantVec;};
-    inline std::vector<SDL_Rect*>& getTabRectCloud(){return _tabCloudVec;};
-    inline std::vector<SDL_Rect*>& getTabRectWater(){return _tabWaterVec;};
-    inline std::vector<SDL_Rect*>& getTabRectFire(){return _tabFireVec;};
-    inline std::vector<SDL_Rect*>& getTabRectLead(){return _tabLeadVec;};
+    inline std::vector<  std::vector<SDL_Rect> >& getTabRect(){return _listTabRect;};
+    inline std::vector< std::vector<int8_t> >& getListCellColor(){return _listCellColor;};
     inline bool getXray(){return _xray;};
     void changeView();
-
-    void addRectToList(CellModel* cellmodel);
-    void deleteToList(SDL_Rect *rect, std::vector<SDL_Rect*> &listRect);
-    bool contains(SDL_Rect *rect, std::vector<SDL_Rect*> &listRect);
+    inline int getNbThread(){return _nbThread;};
 
     void deleteCell(unsigned int row, unsigned int col);
     void setCellAtCooByTool(Type type, int mouseX, int mouseY);
@@ -68,15 +67,15 @@ public:
 
     void growPlantAtCell(unsigned int row, unsigned int col);
 
-    void generateRectByLine(Type type, int row, std::vector<SDL_Rect*> &listRect, std::vector< std::vector<CellModel*> > &listCellModel);
-    void updateTabAllType();
-    void updateTabRectByType(Type type);
-    bool isEmptyCellType(std::vector< std::vector<CellModel*> > &listCellModel, Type type);
-    int findBiggestRect(std::vector< std::vector<CellModel*> > &listCellModelCopy, Type type, int &minRow, int &maxRow, int &minCol, int &maxCol);
+    void clearAllTabRect();
+    void updateAllRect();
 
     void init();
     void update();
 };
 
+void threadCalculateRect(InfoThreadModel *infoThreadModel);
+int findBiggestRect(std::vector< std::vector<CellModel*> > &listCellModelCopy, Type type, int &minRow, int &maxRow, int &minCol, int &maxCol);
+bool isEmptyCellType(std::vector< std::vector<CellModel*> > &listCellModel, Type type);
 
 #endif // WORLDMODEL_H
