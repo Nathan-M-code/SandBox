@@ -42,7 +42,7 @@ int main(int argc, char* args[]) {
 
     while (1)
 	{
-
+        Uint32 timeBefore = SDL_GetTicks();
 	    if(SDL_PollEvent(&event)){
             if (event.type == SDL_QUIT)
             {
@@ -90,7 +90,12 @@ int main(int argc, char* args[]) {
 //        Uint32 timeE = SDL_GetTicks();
 //        cout << "time to clear: " << timeE - timeD << endl;
 
-
+        Uint32 timeAfter = SDL_GetTicks();
+        if(timeAfter-timeBefore < 1000/FPS){
+            Sleep((1000/FPS)-(timeAfter-timeBefore));
+        }
+//        Uint32 timeForFPS = SDL_GetTicks();
+//        cout << "FPS: " << 1000/(timeForFPS-timeBefore) << endl;
 	}
 
 	if (renderer)

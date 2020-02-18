@@ -12,6 +12,9 @@
 
 #include "infoThreadModel.h"
 #include "cellModel.h"
+#include "waveModel.h"
+#include "waveModelV2.h"
+#include "blockCellModel.h"
 #include "constants.h"
 
 
@@ -29,10 +32,15 @@ private:
     unsigned int _tool;
 
     std::vector<CellModel*> _listCellLiquid;
-
+    std::vector<CellModel*> _listCellElec;
+    std::vector< std::vector<CellModel*> > _listLawerModel;
     std::vector< std::vector<CellModel*> > _listCellModel;
 
+    std::vector<BlockCellModel*> _listBlockCell;
+    std::vector<WaveModelV2 *> _listWave;
+
     std::vector<  std::vector<SDL_Rect> > _listTabRect;
+    std::vector<SDL_Rect> _listTabRectElec;
 
     std::vector< std::vector<int8_t> > _listCellColor;
 
@@ -40,6 +48,13 @@ private:
 
     int _nbThread;
     std::vector<std::thread> _listThread;
+
+
+
+    void addNeighbours(std::vector<CellModel*> &listOfCell, BlockCellModel *bc, int row, int col);
+    bool isInABlock(CellModel *cm);
+    BlockCellModel *getBlockByCell(CellModel *cm);
+    void removeOfList(std::vector<CellModel*> &listOfCell, CellModel * cm);
 
 public:
     WorldModel();
@@ -58,6 +73,7 @@ public:
     inline bool getXray(){return _xray;};
     void changeView();
     inline int getNbThread(){return _nbThread;};
+    inline std::vector<SDL_Rect>& getTabElec(){return _listTabRectElec;};
 
     void deleteCell(unsigned int row, unsigned int col);
     void setCellAtCooByTool(Type type, int mouseX, int mouseY);
@@ -68,7 +84,12 @@ public:
     void growPlantAtCell(unsigned int row, unsigned int col);
 
     void clearAllTabRect();
-    void updateAllRect();
+    void updateAllRectByRect();
+
+    void updateAllRectByLine();
+    void generateRectByLine(Type type, int row, std::vector<SDL_Rect> &listRect, std::vector< std::vector<CellModel*> > &listCellModel);
+
+    void updateBlockCell();
 
     void init();
     void update();

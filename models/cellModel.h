@@ -7,7 +7,7 @@
 
 #include "constants.h"
 
-enum Type {plant=0, cloud, water, fire, lead, nothing};
+enum Type {plant=0, cloud, water, fire, lead, c4, electricity, nothing};
 
 class CellModel{
 private:

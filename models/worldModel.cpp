@@ -25,6 +25,13 @@ WorldModel::~WorldModel(){
 
 void WorldModel::init(){
     for(int row=0;row<_nbCellHeight;row++){
+        _listLawerModel.push_back({});
+        for(int col=0;col<_nbCellWidth;col++){
+            _listLawerModel[row].push_back(0);
+        }
+    }
+
+    for(int row=0;row<_nbCellHeight;row++){
         _listCellModel.push_back({});
         for(int col=0;col<_nbCellWidth;col++){
             _listCellModel[row].push_back(0);
@@ -59,6 +66,10 @@ void WorldModel::init(){
     _listCellColor[3].push_back(0);_listCellColor[3].push_back(0);_listCellColor[3].push_back(0);
     //lead
     _listCellColor[4].push_back(100);_listCellColor[4].push_back(100);_listCellColor[4].push_back(100);
+    //c4
+    _listCellColor[5].push_back(255);_listCellColor[5].push_back(204);_listCellColor[5].push_back(102);
+    //elec
+    _listCellColor[6].push_back(255);_listCellColor[6].push_back(255);_listCellColor[6].push_back(0);
 }
 
 void WorldModel::changeView(){
@@ -87,6 +98,12 @@ void WorldModel::setTool(int tool){
     case 4:
         cout << "lead" << endl;
         break;
+    case 5:
+        cout << "c4" << endl;
+        break;
+    case 6:
+        cout << "electricity" << endl;
+        break;
     default:
         cout << "nothing" << endl;
     }
@@ -99,41 +116,53 @@ void WorldModel::deleteCell(unsigned int row, unsigned int col){
             _listCellModel[row][col] = 0;
         }
     }
+    //updateBlockCell();
 }
 
 void WorldModel::setCellAtCooByTool(Type type, int mouseX, int mouseY){
     int atRow = mouseY/CELL_HEIGHT;
     int atCol = mouseX/CELL_WIDTH;
 
-    int midRadiusTool = _radiusTools/2;
+    unsigned temp = 0;
+
+    if(type == electricity){
+        setCellAt(type, atRow, atCol);
+        return;
+    }else{
+        temp = _radiusTools;
+    }
+
+    int midRadiusTool = temp/2;
 
     for(int row=atRow-midRadiusTool;row<atRow+midRadiusTool;row++){
         for(int col=atCol-midRadiusTool;col<atCol+midRadiusTool;col++){
-            if(row>=0 && row<_listCellModel.size() && col>=0 && col<_listCellModel[row].size()){
-                if(_listCellModel[row][col] != 0){
-                    deleteCell(row, col);
-                }
-                if(type == nothing){
-                    deleteCell(row, col);
-                }else{
-                    _listCellModel[row][col] = new CellModel(type, row, col);
-                    //addRectToList(_listCellModel[row][col]);
-                }
-            }
+            setCellAt(type,row,col);
         }
     }
+
+    //updateBlockCell();
 }
 
 void WorldModel::setCellAt(Type type, unsigned int row, unsigned int col){
     if(row>=0 && row<_listCellModel.size() && col>=0 && col<_listCellModel[row].size()){
-        if(_listCellModel[row][col] != 0){
+        if(type != electricity && _listCellModel[row][col] != 0){
             deleteCell(row, col);
         }
         if(type == nothing){
             deleteCell(row, col);
+        }else if(type == electricity){
+            if(_listLawerModel[row][col] == 0){
+                _listLawerModel[row][col] = new CellModel(type, row, col);
+                if(_listCellModel[row][col] != 0 && _listCellModel[row][col]->getType() == lead){
+                    /*BlockCellModel *bcm = getBlockByCell(_listCellModel[row][col]);
+                    if(bcm != NULL){
+                        _listWave.push_back(new WaveModel(row, col, bcm, _listLawerModel, _listCellModel));
+                    }*/
+                    _listWave.push_back(new WaveModelV2(row, col, _listLawerModel, _listCellModel));
+                }
+            }
         }else{
             _listCellModel[row][col] = new CellModel(type, row, col);
-            //addRectToList(_listCellModel[row][col]);
         }
 
     }
@@ -166,7 +195,59 @@ void WorldModel::moveAndReplaceCellAt(unsigned int originRow, unsigned int origi
         }
 }
 
-void WorldModel::updateAllRect(){
+void WorldModel::generateRectByLine(Type type, int row, std::vector<SDL_Rect> &listRect, std::vector< std::vector<CellModel*> > &listCellModel){
+    int col = 0;
+    unsigned int minCol;
+    unsigned int maxCol;
+    while(col < _nbCellWidth){
+        if(listCellModel[row][col] != 0 && listCellModel[row][col]->getType() == type){
+            minCol = col;
+            maxCol = col;
+            col++;
+            while(col < listCellModel[row].size() && listCellModel[row][col] != 0 && listCellModel[row][col]->getType() == type){
+                maxCol = col;
+                col++;
+            }
+            SDL_Rect rect;
+            rect.x = minCol * CELL_WIDTH;
+            rect.y = row * CELL_HEIGHT;
+            rect.h = CELL_HEIGHT;
+            rect.w = CELL_WIDTH*((maxCol-minCol)+1);
+            listRect.push_back(rect);
+            continue;
+        }
+        col++;
+    }
+}
+
+void WorldModel::updateAllRectByLine(){
+    //clear the list of rect
+    clearAllTabRect();
+    _listTabRectElec.clear();
+
+    for(int ty=0;ty<NB_DIFFERENT_CELL_TYPE;ty++){
+        Type type = static_cast<Type>(ty);
+        for(int row=0;row<_nbCellHeight;row++){
+            generateRectByLine(type, row, _listTabRect[ty], _listCellModel);
+        }
+    }
+
+    for(int row=0;row<_nbCellHeight;row++){
+        for(int col=0;col<_nbCellWidth;col++){
+            if(_listLawerModel[row][col] != 0){
+                SDL_Rect rect;
+                rect.x = col * CELL_WIDTH;
+                rect.y = row * CELL_HEIGHT;
+                rect.h = CELL_HEIGHT;
+                rect.w = CELL_WIDTH;
+                _listTabRectElec.push_back(rect);
+            }
+        }
+    }
+
+}
+
+void WorldModel::updateAllRectByRect(){
     //clear the list of rect
     clearAllTabRect();
 
@@ -198,6 +279,7 @@ void WorldModel::updateAllRect(){
 
 void WorldModel::update(){
     _listCellLiquid.clear();
+    _listCellElec.clear();
     for(int row=0;row<_listCellModel.size();row++){
         for(int col=0;col<_listCellModel[row].size();col++){
             if(_listCellModel[row][col] != 0){
@@ -234,6 +316,17 @@ void WorldModel::update(){
             }
         }
     }
+
+    for(int row=0;row<_listLawerModel.size();row++){
+        for(int col=0;col<_listLawerModel[row].size();col++){
+            if(_listLawerModel[row][col] != 0){
+                if(_listLawerModel[row][col]->getType() == electricity){
+                    _listCellElec.push_back(_listLawerModel[row][col]);
+                }
+            }
+        }
+    }
+
     for(unsigned int i=0;i<_listCellLiquid.size();i++){
         //cout << i << " / " << _listCellLiquid.size()-1 << endl;
         if(_listCellLiquid[i]->getType() == water){
@@ -260,8 +353,131 @@ void WorldModel::update(){
             }
         }
     }
-    updateAllRect();
+
+    for(unsigned int i=0;i<_listCellElec.size();i++){
+        int row = _listCellElec[i]->getRow();
+        int col = _listCellElec[i]->getCol();
+        if(row+1 < _listCellModel.size() && _listCellModel[row+1][col] != 0 && _listCellModel[row+1][col]->getType() == c4){
+            setCellAt(electricity,row+1,col);
+            deleteCell(row+1,col);
+        }
+        if(row-1 >= 0 && _listCellModel[row-1][col] != 0 && _listCellModel[row-1][col]->getType() == c4){
+            setCellAt(electricity,row-1,col);
+            deleteCell(row-1,col);
+        }
+        if(col+1 <_listCellModel[row].size() && _listCellModel[row][col+1] != 0 && _listCellModel[row][col+1]->getType() == c4){
+            setCellAt(electricity,row,col+1);
+            deleteCell(row,col+1);
+        }
+        if(col-1 >= 0 && _listCellModel[row][col-1] != 0 && _listCellModel[row][col-1]->getType() == c4){
+            setCellAt(electricity,row,col-1);
+            deleteCell(row,col-1);
+        }
+        //------------------
+        if(_listCellModel[row][col] == 0 ||  _listCellModel[row][col]->getType() != lead){
+            delete _listLawerModel[row][col];
+            _listLawerModel[row][col] = 0;
+        }
+    }
+
+    for(int i=0;i<_listWave.size();i++){
+        _listWave[i]->update();
+        if(_listWave[i]->isFinished()){
+            delete _listWave[i];
+            _listWave.erase(_listWave.begin()+i);
+            i--;
+        }
+    }
+
+    //updateAllRectByRect();
+    updateAllRectByLine();
 }
+
+void WorldModel::updateBlockCell(){
+    vector<CellModel*> listOfLead;
+    for(int i=0;i<_listBlockCell.size();i++){
+        delete _listBlockCell[i];
+        _listBlockCell[i] = 0;
+    }
+    _listBlockCell.clear();
+
+    //just LEAD for now
+    for(int row=0;row<_listCellModel.size();row++){
+        for(int col=0;col<_listCellModel[row].size();col++){
+            if(_listCellModel[row][col] != 0 && _listCellModel[row][col]->getType() == lead){
+                listOfLead.push_back(_listCellModel[row][col]);
+            }
+        }
+    }
+
+
+    unsigned currentIndex = -1;
+    for(int i=0;i<listOfLead.size();i++){
+        int row = listOfLead[i]->getRow();
+        int col = listOfLead[i]->getCol();
+        if(!isInABlock(_listCellModel[row][col])){
+            //add in a new block
+            BlockCellModel *bc = new BlockCellModel(lead);
+            _listBlockCell.push_back(bc);
+            currentIndex++;
+            _listBlockCell[currentIndex]->addCellToBLock(_listCellModel[row][col]);
+
+            addNeighbours(listOfLead, _listBlockCell[currentIndex], row, col);
+        }
+    }
+}
+
+void WorldModel::addNeighbours(std::vector<CellModel*> &listOfCell, BlockCellModel *bc, int row, int col){
+    if(row-1 >= 0 && _listCellModel[row-1][col] != 0 && _listCellModel[row-1][col]->getType() == lead && !bc->isInBlock(_listCellModel[row-1][col])){
+        bc->addCellToBLock(_listCellModel[row-1][col]);
+        removeOfList(listOfCell, _listCellModel[row-1][col]);
+        addNeighbours(listOfCell, bc, row-1, col);
+    }
+    if(row+1 < _listCellModel.size() && _listCellModel[row+1][col] != 0 && _listCellModel[row+1][col]->getType() == lead && !bc->isInBlock(_listCellModel[row+1][col])){
+        bc->addCellToBLock(_listCellModel[row+1][col]);
+        removeOfList(listOfCell, _listCellModel[row+1][col]);
+        addNeighbours(listOfCell, bc, row+1, col);
+    }
+    if(col-1 >= 0 && _listCellModel[row][col-1] != 0 && _listCellModel[row][col-1]->getType() == lead && !bc->isInBlock(_listCellModel[row][col-1])){
+        bc->addCellToBLock(_listCellModel[row][col-1]);
+        removeOfList(listOfCell, _listCellModel[row][col-1]);
+        addNeighbours(listOfCell, bc, row, col-1);
+    }
+    if(col+1 < _listCellModel[row].size() && _listCellModel[row][col+1] != 0 && _listCellModel[row][col+1]->getType() == lead && !bc->isInBlock(_listCellModel[row][col+1])){
+        bc->addCellToBLock(_listCellModel[row][col+1]);
+        removeOfList(listOfCell, _listCellModel[row][col+1]);
+        addNeighbours(listOfCell, bc, row, col+1);
+    }
+}
+
+bool WorldModel::isInABlock(CellModel *cm){
+    for(int i=0;i<_listBlockCell.size();i++){
+        if(_listBlockCell[i]->isInBlock(cm)){
+            return true;
+        }
+    }
+    return false;
+}
+
+void WorldModel::removeOfList(std::vector<CellModel*> &listOfCell, CellModel * cm){
+    for(int i=0;i<listOfCell.size();i++){
+        if(listOfCell[i] == cm){
+            listOfCell.erase(listOfCell.begin()+i);
+            break;
+        }
+    }
+}
+
+BlockCellModel * WorldModel::getBlockByCell(CellModel *cm){
+    for(int i=0;i<_listBlockCell.size();i++){
+        if(_listBlockCell[i]->isInBlock(cm)){
+            return _listBlockCell[i];
+        }
+    }
+    return NULL;
+}
+
+
 
 void WorldModel::clearAllTabRect(){
     for(int i=0;i<_listTabRect.size();i++){

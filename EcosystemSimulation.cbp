@@ -42,11 +42,17 @@
 		<Unit filename="controlers/worldControler.cpp" />
 		<Unit filename="controlers/worldControler.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="models/blockCellModel.cpp" />
+		<Unit filename="models/blockCellModel.h" />
 		<Unit filename="models/cellModel.cpp" />
 		<Unit filename="models/cellModel.h" />
 		<Unit filename="models/constants.h" />
 		<Unit filename="models/infoThreadModel.cpp" />
 		<Unit filename="models/infoThreadModel.h" />
+		<Unit filename="models/waveModel.cpp" />
+		<Unit filename="models/waveModel.h" />
+		<Unit filename="models/waveModelV2.cpp" />
+		<Unit filename="models/waveModelV2.h" />
 		<Unit filename="models/worldModel.cpp" />
 		<Unit filename="models/worldModel.h" />
 		<Unit filename="views/worldView.cpp" />

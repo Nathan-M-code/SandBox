@@ -23,31 +23,8 @@ bool WorldControler::event(SDL_Event &event){
         SDL_GetMouseState(_worldModel->getMouseX(), _worldModel->getMouseY());
         //cout << "new mouse coo: " << *_worldModel->getMouseX() << " " << *_worldModel->getMouseY() << endl;
         if(_worldModel->isMouseDown()){
-            switch(_worldModel->getTool()){
-            case 0:
-                _worldModel->setCellAtCooByTool(plant, *_worldModel->getMouseX(), *_worldModel->getMouseY());
-                //_worldModel->updateTabRectByType(plant);
-                break;
-            case 1:
-                _worldModel->setCellAtCooByTool(cloud, *_worldModel->getMouseX(), *_worldModel->getMouseY());
-                //_worldModel->updateTabRectByType(cloud);
-                break;
-            case 2:
-                _worldModel->setCellAtCooByTool(water, *_worldModel->getMouseX(), *_worldModel->getMouseY());
-                //_worldModel->updateTabRectByType(water);
-                break;
-            case 3:
-                _worldModel->setCellAtCooByTool(fire, *_worldModel->getMouseX(), *_worldModel->getMouseY());
-                //_worldModel->updateTabRectByType(fire);
-                break;
-            case 4:
-                _worldModel->setCellAtCooByTool(lead, *_worldModel->getMouseX(), *_worldModel->getMouseY());
-                //_worldModel->updateTabRectByType(lead);
-                break;
-            default:
-                _worldModel->setCellAtCooByTool(nothing, *_worldModel->getMouseX(), *_worldModel->getMouseY());
-                break;
-            }
+            Type type = static_cast<Type>(_worldModel->getTool());
+            _worldModel->setCellAtCooByTool(type, *_worldModel->getMouseX(), *_worldModel->getMouseY());
         }
     }
 
